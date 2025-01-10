@@ -1,3 +1,4 @@
+const { createToken } = require("../midelware/jwt");
 const usermodel = require("../model/usermodel");
 const bcrypt = require('bcryptjs');
 
@@ -79,10 +80,13 @@ exports.login = async(req,res) => {
             data : []
         })
     }else{
+
+        const token = createToken(result)
         return res.status(201).send({
             msg : "Login successfully",
             stete : 1,
             data : result,
+            token : token
         })
     }
 }
@@ -90,21 +94,24 @@ exports.login = async(req,res) => {
 
 // To update any user info
 exports.updateuser = async(req,res) => {
+
+
     try {
         await usermodel.findOneAndUpdate({_id:req.params.id},{
-            $or : {
+           
                 username : req.body.username,
                 email : req.body.email,
                 password : req.body.password,
                 address : req.body.address,
                 phone : req.body.phone,
                 usertype : req.body.usertype,
-            }
-        }).then((data)=>{
+            
+        }).then(async (data)=>{
+                const user = await usermodel.findById({_id : req.params.id})
                 return res.status(200).send({
                     msg : "your change has been supmited",
                     stete : 1,
-                    data : data
+                    data : user
                 })
         }).catch((err)=> {
         return res.status(500).send({
